@@ -4,7 +4,6 @@ import com.example.Glovo.model.Order;
 import com.example.Glovo.model.OrderWithProduct;
 import com.example.Glovo.model.Product;
 import org.springframework.jdbc.core.RowMapper;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
