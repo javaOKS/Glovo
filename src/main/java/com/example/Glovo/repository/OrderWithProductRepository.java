@@ -9,7 +9,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.ErrorResponseException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
@@ -38,6 +37,18 @@ public class OrderWithProductRepository {
                     	INNER JOIN order_product ON "order".order_id = order_product.order_id
                     	INNER JOIN product ON  order_product.product_id = product.product_id WHERE "order".order_id =  
                     """;
+    private final String getOrdersToUpdate =
+            """
+                    SELECT order_id FROM order_product WHERE product_id = 
+                    """;
+    private final String update =
+            """
+                    UPDATE "order"  SET order_cost = ? WHERE order_id = ?
+                    """;
+    private final String delete =
+            """ 
+                    DELETE FROM order_product WHERE product_id = 
+                    """;
     public OrderWithProductRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -58,7 +69,16 @@ public class OrderWithProductRepository {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
             Order orderId = jdbcTemplate.queryForObject(saveOrder, new OrderRowMapper(), order.getDate(), sum);
             for (Product p : products) {
-                jdbcTemplate.update(saveOrderProduct, orderId.getId(), p.getId());
+                this.jdbcTemplate.update(saveOrderProduct, orderId.getId(), p.getId());
             }
+    }
+    public List<Order> getOrdersToUpdate(int productId){
+        return this.jdbcTemplate.query(getOrdersToUpdate + productId, new OrderRowMapper());
+    }
+    public void update(int id,Order order){
+        this.jdbcTemplate.update(update,order.getCost(),id);
+    }
+    public void delete(int id){
+       this.jdbcTemplate.update(delete +id);
     }
 }
